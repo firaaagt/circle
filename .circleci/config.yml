@@ -2,17 +2,16 @@ version: 2.1
 jobs:
   test_kernel:
     docker:
-      - image: ghcr.io/stebomuraya/docker-android-build-env:latest
+      - image: cimg/base:stable
     resource_class: large
     steps:
       - run:
           name: Setup
           command: |
             sudo apt-get update
-            sudo apt-get install -y bc bison build-essential flex git libssl-dev libelf-dev clang lld
+            sudo apt-get install -y bc bison build-essential flex git libssl-dev libelf-dev clang lld llvm aarch64-linux-gnu-gcc
             pwd
             clang --version
-            gcc --version
             git clone --depth=1 https://github.com/Mi-Thorium/kernel_msm-4.19.git -b mithorium/a13/tmp/4.19.307 kernel
             cd kernel
             ls -la
@@ -29,8 +28,7 @@ jobs:
                 ARCH=arm64 \
                 CC=clang \
                 CLANG_TRIPLE=aarch64-linux-gnu- \
-                CROSS_COMPILE=aarch64-linux-android- \
-                CROSS_COMPILE_ARM32=arm-linux-androideabi-
+                CROSS_COMPILE=aarch64-linux-gnu-
       - store_artifacts:
           path: kernel/out/arch/arm64/boot/Image.gz-dtb
           destination: kernel-test-wildan

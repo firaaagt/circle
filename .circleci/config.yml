@@ -11,7 +11,7 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt-get install -y bc bison build-essential flex git libssl-dev libelf-dev clang lld llvm gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
-            git clone --depth=1 https://github.com/Mi-Thorium/kernel_msm-4.19.git -b mithorium/a13/tmp/4.19.307 kernel
+            git clone --depth=1 https://github.com/LineageOS/android_kernel_xiaomi_msm8937.git -b lineage-23.2 kernel
       - run:
           name: Build
           command: |
@@ -20,18 +20,8 @@ jobs:
             export SUBARCH=arm64
             export KBUILD_BUILD_USER="Wildan"
             export KBUILD_BUILD_HOST="Kaioxen-Lab"
-            
-            # Fix error drivers/staging/prima/Kconfig
-            sed -i '/prima\/Kconfig/d' drivers/staging/Kconfig
-            
             mkdir -p out
-            # Step 1: Ambil base msm8937_defconfig
             make O=out ARCH=arm64 msm8937_defconfig
-            
-            # Step 2: Merge fragment config yang lu mau
-            scripts/kconfig/merge_config.sh -O out out/.config arch/arm64/configs/vendor/xiaomi/msm8937/mi8937_exclude_mi8917.config
-            
-            # Step 3: Masak!
             make -j$(nproc --all) O=out \
                 ARCH=arm64 \
                 CC=clang \

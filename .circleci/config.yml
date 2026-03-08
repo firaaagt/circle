@@ -1,19 +1,25 @@
 version: 2.1
 jobs:
-  test_kernel:
+  masak_ksu_next:
     docker:
       - image: cimg/base:stable
     resource_class: large
     steps:
       - checkout
       - run:
-          name: Setup
+          name: Setup Environment
           command: |
             sudo apt-get update
             sudo apt-get install -y bc bison build-essential flex git libssl-dev libelf-dev clang lld llvm gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi cpio
-            git clone --depth=1 https://github.com/LineageOS/android_kernel_xiaomi_msm8937.git -b lineage-23.2 kernel
       - run:
-          name: Build
+          name: Clone Source & Submodule
+          command: |
+            git clone --depth=1 https://github.com/Rve27/android_kernel_xiaomi_msm8937.git -b ksu kernel
+            cd kernel
+            # Penting: Tarik source KernelSU-Next yang ada di submodule
+            git submodule update --init --recursive
+      - run:
+          name: Build Kernel Next
           command: |
             cd kernel
             export ARCH=arm64
@@ -22,14 +28,17 @@ jobs:
             export KBUILD_BUILD_HOST="Kaioxen-Lab"
             mkdir -p out
             
+            # Step 1: Defconfig (Pake vendor msm8937 sesuai screenshot lu)
             make O=out ARCH=arm64 vendor/msm8937_defconfig
-            scripts/kconfig/merge_config.sh -O out out/.config arch/arm64/configs/vendor/xiaomi/msm8937/mi8937_exclude_mi8917.config
             
-            # BYPASS ERROR lib/fault-inject.c & BPF
+            # Step 2: Aktifkan fitur wajib & Bypass error sebelumnya
+            scripts/config --file out/.config --enable CONFIG_KSU
+            scripts/config --file out/.config --enable CONFIG_KSU_NEXT
             scripts/config --file out/.config --disable CONFIG_FAULT_INJECTION
             scripts/config --file out/.config --disable CONFIG_IKHEADERS
             scripts/config --file out/.config --disable CONFIG_BPF_PRELOAD
             
+            # Step 3: Gass Pol!
             make -j$(nproc --all) O=out \
                 ARCH=arm64 \
                 CC=clang \
@@ -38,8 +47,8 @@ jobs:
                 CROSS_COMPILE_ARM32=arm-linux-gnueabi-
       - store_artifacts:
           path: kernel/out/arch/arm64/boot/Image.gz-dtb
-          destination: kernel-test-wildan
+          destination: kernel-ksu-next-wildan
 workflows:
-  build_test:
+  build_ksu:
     jobs:
-      - test_kernel
+      - masak_ksu_next

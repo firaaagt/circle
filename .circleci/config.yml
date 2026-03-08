@@ -21,7 +21,8 @@ jobs:
             export KBUILD_BUILD_USER="Wildan"
             export KBUILD_BUILD_HOST="Kaioxen-Lab"
             mkdir -p out
-            make O=out ARCH=arm64 vendor/xiaomi/msm8937/mi8937.config
+            make O=out ARCH=arm64 msm8937_defconfig
+            scripts/kconfig/merge_config.sh -O out out/.config arch/arm64/configs/vendor/xiaomi/msm8937/mi8937.config
             make -j$(nproc --all) O=out \
                 ARCH=arm64 \
                 CC=clang \

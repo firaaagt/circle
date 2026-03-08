@@ -22,15 +22,14 @@ jobs:
             export KBUILD_BUILD_HOST="Kaioxen-Lab"
             mkdir -p out
             
-            # Step 1: Generate Config
             make O=out ARCH=arm64 vendor/msm8937_defconfig
             scripts/kconfig/merge_config.sh -O out out/.config arch/arm64/configs/vendor/xiaomi/msm8937/mi8937_exclude_mi8917.config
             
-            # Step 2: Fix Build Errors (Disable Broken Features)
+            # BYPASS ERROR lib/fault-inject.c & BPF
+            scripts/config --file out/.config --disable CONFIG_FAULT_INJECTION
             scripts/config --file out/.config --disable CONFIG_IKHEADERS
             scripts/config --file out/.config --disable CONFIG_BPF_PRELOAD
             
-            # Step 3: Masak Sampai Jadi Image
             make -j$(nproc --all) O=out \
                 ARCH=arm64 \
                 CC=clang \

@@ -5,18 +5,20 @@ jobs:
       - image: cimg/base:stable
     resource_class: large
     steps:
+      - checkout
       - run:
-          name: Setup
+          name: Setup Environment
           command: |
             sudo apt-get update
             sudo apt-get install -y bc bison build-essential flex git libssl-dev libelf-dev clang lld llvm aarch64-linux-gnu-gcc
             pwd
             clang --version
-            git clone --depth=1 https://github.com/Mi-Thorium/kernel_msm-4.19.git -b mithorium/a13/tmp/4.19.307 kernel
-            cd kernel
-            ls -la
       - run:
-          name: Build
+          name: Clone Source
+          command: |
+            git clone --depth=1 https://github.com/Mi-Thorium/kernel_msm-4.19.git -b mithorium/a13/tmp/4.19.307 kernel
+      - run:
+          name: Build Kernel
           command: |
             cd kernel
             export ARCH=arm64

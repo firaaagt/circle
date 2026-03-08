@@ -30,7 +30,7 @@ jobs:
             # Step 1: Generate Config
             make O=out ARCH=arm64 vendor/msm8937_defconfig
             
-            # Step 2: Set Nama Wildan & Aktifkan Fitur
+            # Step 2: Set Nama Wildan & Bypass Fitur
             scripts/config --file out/.config --set-str CONFIG_LOCALVERSION "-Wildan"
             scripts/config --file out/.config --enable CONFIG_KSU
             scripts/config --file out/.config --enable CONFIG_KSU_NEXT
@@ -39,7 +39,6 @@ jobs:
             scripts/config --file out/.config --disable CONFIG_BPF_PRELOAD
             
             # Step 3: Masak Kernel & DTB
-            # Kita tambah perintah 'dtbs' di sini biar file .dtb nya muncul
             make -j$(nproc --all) O=out \
                 ARCH=arm64 \
                 CC=clang \
@@ -48,9 +47,8 @@ jobs:
                 CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
                 Image.gz dtbs
 
-            # Step 4: Gabungin Jadi Image.gz-dtb
-            # Pakai perintah find biar lebih akurat nyari file dtb-nya
-            find out/arch/arm64/boot/dts/qcom/ -name "*.dtb" -exec cat {} + > out/arch/arm64/boot/Image.gz-dtb
+            # Step 4: Gabungin Jadi Image.gz-dtb (Pencarian DTB lebih luas)
+            find out/arch/arm64/boot/dts/ -name "*.dtb" -exec cat {} + > out/arch/arm64/boot/Image.gz-dtb
       - store_artifacts:
           path: kernel/out/arch/arm64/boot/Image.gz-dtb
           destination: hasil-kernel-pure-wildan

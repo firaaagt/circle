@@ -10,7 +10,7 @@ jobs:
           name: Setup
           command: |
             sudo apt-get update
-            sudo apt-get install -y bc bison build-essential flex git libssl-dev libelf-dev clang lld llvm gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
+            sudo apt-get install -y bc bison build-essential flex git libssl-dev libelf-dev clang lld llvm gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi cpio
             git clone --depth=1 https://github.com/LineageOS/android_kernel_xiaomi_msm8937.git -b lineage-23.2 kernel
       - run:
           name: Build
@@ -22,13 +22,15 @@ jobs:
             export KBUILD_BUILD_HOST="Kaioxen-Lab"
             mkdir -p out
             
-            # Step 1: Panggil base config (Lokasinya di configs/vendor/msm8937_defconfig)
+            # Step 1: Generate Config
             make O=out ARCH=arm64 vendor/msm8937_defconfig
-            
-            # Step 2: Merge fragment Xiaomi (Lokasinya di configs/vendor/xiaomi/msm8937/...)
             scripts/kconfig/merge_config.sh -O out out/.config arch/arm64/configs/vendor/xiaomi/msm8937/mi8937_exclude_mi8917.config
             
-            # Step 3: Gass Masak!
+            # Step 2: Fix Build Errors (Disable Broken Features)
+            scripts/config --file out/.config --disable CONFIG_IKHEADERS
+            scripts/config --file out/.config --disable CONFIG_BPF_PRELOAD
+            
+            # Step 3: Masak Sampai Jadi Image
             make -j$(nproc --all) O=out \
                 ARCH=arm64 \
                 CC=clang \

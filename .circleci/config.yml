@@ -21,7 +21,14 @@ jobs:
             export KBUILD_BUILD_USER="Wildan"
             export KBUILD_BUILD_HOST="Kaioxen-Lab"
             mkdir -p out
-            make O=out ARCH=arm64 msm8937_defconfig
+            
+            # Step 1: Panggil base config (Lokasinya di configs/vendor/msm8937_defconfig)
+            make O=out ARCH=arm64 vendor/msm8937_defconfig
+            
+            # Step 2: Merge fragment Xiaomi (Lokasinya di configs/vendor/xiaomi/msm8937/...)
+            scripts/kconfig/merge_config.sh -O out out/.config arch/arm64/configs/vendor/xiaomi/msm8937/mi8937_exclude_mi8917.config
+            
+            # Step 3: Gass Masak!
             make -j$(nproc --all) O=out \
                 ARCH=arm64 \
                 CC=clang \

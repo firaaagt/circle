@@ -16,7 +16,6 @@ jobs:
           command: |
             git clone --depth=1 https://github.com/Rve27/android_kernel_xiaomi_msm8937.git -b ksu kernel
             cd kernel
-            # Penting: Tarik source KernelSU-Next yang ada di submodule
             git submodule update --init --recursive
       - run:
           name: Build Kernel Next
@@ -28,17 +27,18 @@ jobs:
             export KBUILD_BUILD_HOST="Kaioxen-Lab"
             mkdir -p out
             
-            # Step 1: Defconfig (Pake vendor msm8937 sesuai screenshot lu)
+            # Step 1: Defconfig
             make O=out ARCH=arm64 vendor/msm8937_defconfig
             
-            # Step 2: Aktifkan fitur wajib & Bypass error sebelumnya
+            # Step 2: Ganti LOCALVERSION jadi Wildan & Aktifkan Fitur
+            scripts/config --file out/.config --set-str CONFIG_LOCALVERSION "-Wildan"
             scripts/config --file out/.config --enable CONFIG_KSU
             scripts/config --file out/.config --enable CONFIG_KSU_NEXT
             scripts/config --file out/.config --disable CONFIG_FAULT_INJECTION
             scripts/config --file out/.config --disable CONFIG_IKHEADERS
             scripts/config --file out/.config --disable CONFIG_BPF_PRELOAD
             
-            # Step 3: Gass Pol!
+            # Step 3: Masak!
             make -j$(nproc --all) O=out \
                 ARCH=arm64 \
                 CC=clang \
@@ -46,8 +46,8 @@ jobs:
                 CROSS_COMPILE=aarch64-linux-gnu- \
                 CROSS_COMPILE_ARM32=arm-linux-gnueabi-
       - store_artifacts:
-          path: kernel/out/arch/arm64/boot/Image.gz-dtb
-          destination: kernel-ksu-next-wildan
+          path: kernel/out/arch/arm64/boot/
+          destination: hasil-kernel-wildan
 workflows:
   build_ksu:
     jobs:

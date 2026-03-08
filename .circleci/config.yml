@@ -27,10 +27,10 @@ jobs:
             export KBUILD_BUILD_HOST="Kaioxen-Lab"
             mkdir -p out
             
-            # Step 1: Defconfig
+            # Step 1: Generate Config
             make O=out ARCH=arm64 vendor/msm8937_defconfig
             
-            # Step 2: Ganti LOCALVERSION jadi Wildan & Aktifkan Fitur
+            # Step 2: Set Nama Wildan & Aktifkan Fitur
             scripts/config --file out/.config --set-str CONFIG_LOCALVERSION "-Wildan"
             scripts/config --file out/.config --enable CONFIG_KSU
             scripts/config --file out/.config --enable CONFIG_KSU_NEXT
@@ -38,16 +38,19 @@ jobs:
             scripts/config --file out/.config --disable CONFIG_IKHEADERS
             scripts/config --file out/.config --disable CONFIG_BPF_PRELOAD
             
-            # Step 3: Masak!
+            # Step 3: Kompile
             make -j$(nproc --all) O=out \
                 ARCH=arm64 \
                 CC=clang \
                 CLANG_TRIPLE=aarch64-linux-gnu- \
                 CROSS_COMPILE=aarch64-linux-gnu- \
                 CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+
+            # Step 4: PROSES GABUNGIN JADI Image.gz-dtb (INI NU LU BUTUHIN)
+            cat out/arch/arm64/boot/Image.gz out/arch/arm64/boot/dts/qcom/*.dtb > out/arch/arm64/boot/Image.gz-dtb
       - store_artifacts:
-          path: kernel/out/arch/arm64/boot/
-          destination: hasil-kernel-wildan
+          path: kernel/out/arch/arm64/boot/Image.gz-dtb
+          destination: hasil-kernel-pure-wildan
 workflows:
   build_ksu:
     jobs:
